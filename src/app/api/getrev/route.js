@@ -1,0 +1,11 @@
+import { fetchRevenueMoreThan } from "@/lib/bigquery";
+import { NextResponse } from "next/server"
+
+export async function GET() {
+    try {
+        const rows = await fetchRevenueMoreThan(300)
+        return NextResponse.json({ ok: true, rows })
+    } catch (e) {
+        return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+} 
