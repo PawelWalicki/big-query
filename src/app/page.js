@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { CountrySelect } from "./components/CountrySelect";
+import { RevenueSelect } from "./components/RevenueSelect";
 
 const ITEMS_PER_PAGE = 50
 
@@ -8,7 +9,8 @@ export default function Home() {
   const [data, setData] = useState([])
   const [startIdx, setStartIdx] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [countryFilter, setCountryFilter] = useState([]) // ["PL", "FR"]
+  const [countryFilter, setCountryFilter] = useState([])
+  // jak strukturyzowac filtry, a kontretnie from-to? 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,22 +32,23 @@ export default function Home() {
     setStartIdx((currentPage - 1) * ITEMS_PER_PAGE)
   }, [currentPage])
 
-  useEffect(()=>{
-    console.log(countryFilter)
-  },[countryFilter])
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [countryFilter])
 
   let getCountriesFromData = () => {
-    const countries = [...new Set(data.map(element => element.country))] // Check it! 
+    const countries = [...new Set(data.map(element => element.country))] 
     return countries.map(country => ({
       value: country,
       label: country
     }))
   }
+  const filterData = countryFilter.length === 0 ? data : data.filter((element) => countryFilter.includes(element.country));
 
-  // Wyciagnac options jako props w Country Select -> zrobic z tych DE,PL... {value:"PL", label:"PL"}
   return (
     <div className="p-3">
       <CountrySelect options={getCountriesFromData()} setCountryFilter={setCountryFilter} />
+      <RevenueSelect></RevenueSelect>
       <table className=" w-7xl border-collapse">
         <thead>
           <tr>
@@ -55,7 +58,7 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
-          {data
+          {filterData
             .slice(startIdx, startIdx + ITEMS_PER_PAGE)
             .map((element, idx) => (
               <tr key={idx}>
@@ -73,13 +76,19 @@ export default function Home() {
         </tbody>
       </table>
 
-      {Array.from({ length: data.length / ITEMS_PER_PAGE }, (_, index) => (
-        <button className="m-[5] cursor-pointer hover:text-stone-400" key={index} onClick={() => setCurrentPage(index + 1)}>{index + 1}</button>
-      ))}
-
+      {Array.from(
+        { length: Math.ceil(filterData.length / ITEMS_PER_PAGE) },
+        (_, index) => (
+          <button
+            className={`m-[5px] cursor-pointer hover:text-stone-400 ${currentPage===index+1 ? "underline decoration-sky-500" : "" }`}
+            key={index}
+            onClick={() => setCurrentPage(index + 1)}
+          >
+            {index + 1}
+          </button>
+        )
+      )}
 
     </div>
   );
 }
-
-// [Front] [REST API]{ "order_date": { "value": "2026-07-14" }, "country": "PL", "revenue": 193 }
